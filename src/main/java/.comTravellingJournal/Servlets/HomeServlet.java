@@ -9,16 +9,18 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-@WebServlet("/logout")
-public class LogoutServlet extends HttpServlet {
+@WebServlet("/home")
+public class HomeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
+        HttpSession session = request.getSession();
+        if (session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/jsp/auth/login.jsp");
+            return;
         }
-        response.sendRedirect(request.getContextPath() + "/jsp/auth/login.jsp");
+
+        request.getRequestDispatcher("/jsp/home.jsp").forward(request, response);
     }
 }

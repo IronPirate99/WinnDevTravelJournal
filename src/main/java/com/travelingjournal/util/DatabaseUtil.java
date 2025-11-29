@@ -2,7 +2,13 @@ package com.travelingjournal.util;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
+import org.bson.Document;
+
+import static com.mongodb.client.model.Updates.inc;
 
 public class DatabaseUtil {
     
@@ -23,5 +29,27 @@ public class DatabaseUtil {
             }
         }
         return mongoClient.getDatabase(DB_NAME);
+    }
+
+    /**
+     * Simple sequence generator stored in a `counters` collection.
+     * Returns next sequence value for given name (collection/key).
+     */
+    public static long getNextSequence(String name) {
+        try {
+            MongoCollection<Document> counters = getDatabase().getCollection("counters");
+            Document filter = new Document("_id", name);
+            Document update = new Document("$inc", new Document("seq", 1));
+            FindOneAndUpdateOptions opts = new FindOneAndUpdateOptions().upsert(true).returnDocument(ReturnDocument.AFTER);
+            Document result = counters.findOneAndUpdate(filter, update, opts);
+            if (result != null && result.containsKey("seq")) {
+                Object seq = result.get("seq");
+                if (seq instanceof Number) return ((Number) seq).longValue();
+            }
+            throw new RuntimeException("Unable to get sequence for " + name);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

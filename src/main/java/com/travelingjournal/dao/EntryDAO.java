@@ -30,7 +30,6 @@ public class EntryDAO {
     public List<JournalEntry> findAllByTripId(String tripId) {
         List<JournalEntry> entries = new ArrayList<>();
         
-        // Find by Trip ObjectId
         for (Document doc : getEntryCollection().find(eq("trip_id", new ObjectId(tripId)))) {
             JournalEntry entry = new JournalEntry();
             entry.setId(doc.getObjectId("_id").toHexString());

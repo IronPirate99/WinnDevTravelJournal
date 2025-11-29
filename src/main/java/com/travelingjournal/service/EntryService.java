@@ -41,7 +41,6 @@ public class EntryService {
     }
 
     public boolean deleteEntry(Long entryId, Long tripId, Long userId) {
-        // Security: verify trip belongs to user (via TripService if needed)
         return entryDAO.delete(entryId);
     }
 }

@@ -39,7 +39,6 @@ public class PhotoUploadServlet extends HttpServlet {
         }
 
         String tripId = request.getParameter("tripId");
-        // Optional: Save fileName to DB linked to entry/trip
 
         response.sendRedirect(request.getContextPath() + "/trip/view?id=" + tripId + "&photo=" + fileName);
     }

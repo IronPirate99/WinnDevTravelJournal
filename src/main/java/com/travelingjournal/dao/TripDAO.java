@@ -29,7 +29,6 @@ public class TripDAO {
     public List<Trip> findAllByUserId(String userId) {
         List<Trip> trips = new ArrayList<>();
         
-        // Find all documents where "user_id" matches the incoming ObjectId
         for (Document doc : getTripCollection().find(eq("user_id", new ObjectId(userId)))) {
             Trip trip = new Trip();
             trip.setId(doc.getObjectId("_id").toHexString());
@@ -48,7 +47,6 @@ public class TripDAO {
              Trip trip = new Trip();
              trip.setId(doc.getObjectId("_id").toHexString());
              trip.setTitle(doc.getString("title"));
-             // ... set other fields
              return trip;
         }
         return null;

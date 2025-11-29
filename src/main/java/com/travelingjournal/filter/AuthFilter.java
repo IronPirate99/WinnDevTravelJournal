@@ -9,10 +9,6 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-/**
- * Filters all requests to protected resources.
- * If user is not logged in → redirect to login page
- */
 @WebFilter(urlPatterns = {
         "/home",
         "/trip/*",
@@ -30,10 +26,8 @@ public class AuthFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) resp;
         HttpSession session = request.getSession(false); // don't create new session
 
-        // Check if user is logged in
         boolean isLoggedIn = (session != null && session.getAttribute("user") != null);
 
-        // Allow access to login/register pages even when not logged in
         String requestURI = request.getRequestURI();
         String contextPath = request.getContextPath();
 
@@ -49,13 +43,10 @@ public class AuthFilter implements Filter {
             requestURI.endsWith(".jpeg") ||
             requestURI.contains("/images/")) {
 
-            // User is authenticated OR accessing public resources → continue
             chain.doFilter(request, response);
         } else {
-            // Not logged in and trying to access protected page → redirect to login
             String loginPage = contextPath + "/jsp/auth/login.jsp";
 
-            // Optional: save the original destination so we can redirect after login
             if (session != null) {
                 session.setAttribute("redirectAfterLogin", requestURI);
             }

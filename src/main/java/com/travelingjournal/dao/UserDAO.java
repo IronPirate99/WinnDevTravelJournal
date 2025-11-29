@@ -30,12 +30,10 @@ public class UserDAO {
     }
 
     public User findByEmail(String email) {
-        // "eq" is a filter helper: WHERE email = email
         Document doc = getUserCollection().find(eq("email", email)).first();
 
         if (doc != null) {
             User user = new User();
-            // Retrieve the ObjectId and convert to Hex String for the POJO
             user.setId(doc.getObjectId("_id").toHexString()); 
             user.setUsername(doc.getString("username"));
             user.setEmail(doc.getString("email"));

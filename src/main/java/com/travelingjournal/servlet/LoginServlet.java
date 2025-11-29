@@ -8,39 +8,33 @@ import jakarta.servlet.http.*;
 
 import java.io.IOException;
 
-@WebServlet("/register")
-public class RegisterServlet extends HttpServlet {
+@WebServlet("/login")
+public class LoginServlet extends HttpServlet {
 
     private final UserService userService = new UserService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/jsp/auth/register.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/auth/login.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String name = request.getParameter("name");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        if (userService.emailExists(email)) {
-            request.setAttribute("error", "Email already registered");
-            request.getRequestDispatcher("/jsp/auth/register.jsp").forward(request, response);
-            return;
-        }
+        User user = userService.authenticate(email, password);
 
-        User newUser = userService.registerUser(name, email, password);
-        if (newUser != null) {
+        if (user != null) {
             HttpSession session = request.getSession();
-            session.setAttribute("user", newUser);
+            session.setAttribute("user", user);
             response.sendRedirect(request.getContextPath() + "/home");
         } else {
-            request.setAttribute("error", "Registration failed");
-            request.getRequestDispatcher("/jsp/auth/register.jsp").forward(request, response);
+            request.setAttribute("error", "Invalid email or password");
+            request.getRequestDispatcher("/jsp/auth/login.jsp").forward(request, response);
         }
     }
 }

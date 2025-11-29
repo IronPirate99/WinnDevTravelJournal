@@ -1,4 +1,4 @@
-package comTravelingJournal.model;
+package com.travelingjournal.model;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

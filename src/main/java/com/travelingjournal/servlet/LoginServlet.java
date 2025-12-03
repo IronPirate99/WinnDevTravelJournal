@@ -3,12 +3,11 @@ package com.travelingjournal.servlet;
 import com.travelingjournal.model.User;
 import com.travelingjournal.service.UserService;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+// servlet mapping defined in web.xml
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
 
-@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
     private final UserService userService = new UserService();
@@ -25,6 +24,13 @@ public class LoginServlet extends HttpServlet {
 
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+
+        // Validate inputs
+        if (email == null || email.isBlank() || password == null || password.isBlank()) {
+            request.setAttribute("error", "Email and password are required");
+            request.getRequestDispatcher("/jsp/auth/login.jsp").forward(request, response);
+            return;
+        }
 
         User user = userService.authenticate(email, password);
 

@@ -8,9 +8,9 @@ import com.travelingjournal.model.Trip;
 import com.travelingjournal.util.DatabaseUtil;
 import org.bson.Document;
 
-import java.sql.Date;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class TripDAO {
@@ -24,7 +24,8 @@ public class TripDAO {
         if (trip.getId() == null) {
             trip.setId(DatabaseUtil.getNextSequence("trips"));
         }
-        Document doc = new Document("id", trip.getId())
+        // store numeric id into MongoDB document _id to avoid duplicate id fields
+        Document doc = new Document("_id", trip.getId())
                 .append("user_id", trip.getUserId())
                 .append("title", trip.getTitle())
                 .append("destination", trip.getDestination())
@@ -32,10 +33,12 @@ public class TripDAO {
                 .append("cover_photo", trip.getCoverPhoto());
 
         if (trip.getStartDate() != null) {
-            doc.append("start_date", Date.valueOf(trip.getStartDate()));
+            Date sd = Date.from(trip.getStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            doc.append("start_date", sd);
         }
         if (trip.getEndDate() != null) {
-            doc.append("end_date", Date.valueOf(trip.getEndDate()));
+            Date ed = Date.from(trip.getEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            doc.append("end_date", ed);
         }
 
         getTripCollection().insertOne(doc);
@@ -52,12 +55,12 @@ public class TripDAO {
     }
 
     public Trip findById(Long id) {
-        Document doc = getTripCollection().find(Filters.eq("id", id)).first();
+        Document doc = getTripCollection().find(Filters.eq("_id", id)).first();
         return doc == null ? null : documentToTrip(doc);
     }
 
     public boolean exists(Long id) {
-        return getTripCollection().countDocuments(Filters.eq("id", id)) > 0;
+        return getTripCollection().countDocuments(Filters.eq("_id", id)) > 0;
     }
 
     public boolean update(Trip trip) {
@@ -66,17 +69,23 @@ public class TripDAO {
         update.append("destination", trip.getDestination());
         update.append("description", trip.getDescription());
         update.append("cover_photo", trip.getCoverPhoto());
-        if (trip.getStartDate() != null) update.append("start_date", Date.valueOf(trip.getStartDate()));
-        if (trip.getEndDate() != null) update.append("end_date", Date.valueOf(trip.getEndDate()));
+        if (trip.getStartDate() != null) {
+            Date sd = Date.from(trip.getStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            update.append("start_date", sd);
+        }
+        if (trip.getEndDate() != null) {
+            Date ed = Date.from(trip.getEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            update.append("end_date", ed);
+        }
 
         if (update.isEmpty()) return false;
 
-        getTripCollection().updateOne(Filters.eq("id", trip.getId()), new Document("$set", update));
+        getTripCollection().updateOne(Filters.eq("_id", trip.getId()), new Document("$set", update));
         return true;
     }
 
     public boolean delete(Long id) {
-        return getTripCollection().deleteOne(Filters.eq("id", id)).getDeletedCount() > 0;
+        return getTripCollection().deleteOne(Filters.eq("_id", id)).getDeletedCount() > 0;
     }
 
     public List<JournalEntry> findEntriesByTripId(Long tripId) {
@@ -86,7 +95,7 @@ public class TripDAO {
 
     private Trip documentToTrip(Document doc) {
         Trip trip = new Trip();
-        Object idObj = doc.get("id");
+        Object idObj = doc.get("_id");
         if (idObj instanceof Number idNum) trip.setId(idNum.longValue());
         Object userObj = doc.get("user_id");
         if (userObj instanceof Number userNum) trip.setUserId(userNum.longValue());

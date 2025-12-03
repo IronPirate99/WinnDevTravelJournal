@@ -21,6 +21,7 @@ public class EntryService {
         if (entry.getTripId() == null || entry.getContent() == null || entry.getContent().trim().isEmpty()) {
             return false;
         }
+        // Allow null date or let the DAO use default; getEntryDate() may be set from servlet or default to now
         if (entry.getEntryDate() == null) {
             entry.setEntryDate(java.time.LocalDate.now());
         }

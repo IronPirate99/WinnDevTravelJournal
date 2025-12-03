@@ -4,14 +4,14 @@ import com.travelingjournal.model.Trip;
 import com.travelingjournal.model.User;
 import com.travelingjournal.service.TripService;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+// servlet mapping defined in web.xml
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
-@WebServlet("/trip/*")
 public class TripServlet extends HttpServlet {
 
     private final TripService tripService = new TripService();
@@ -38,13 +38,35 @@ public class TripServlet extends HttpServlet {
             request.getRequestDispatcher("/jsp/trip/add.jsp").forward(request, response);
 
         } else if ("/edit".equals(pathInfo)) {
-            Long id = Long.parseLong(request.getParameter("id"));
+            String idParam = request.getParameter("id");
+            if (idParam == null || idParam.isBlank()) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing id");
+                return;
+            }
+            Long id;
+            try {
+                id = Long.parseLong(idParam);
+            } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid id");
+                return;
+            }
             Trip trip = tripService.getTripById(id);
             request.setAttribute("trip", trip);
             request.getRequestDispatcher("/jsp/trip/edit.jsp").forward(request, response);
 
         } else if ("/view".equals(pathInfo)) {
-            Long id = Long.parseLong(request.getParameter("id"));
+            String idParam = request.getParameter("id");
+            if (idParam == null || idParam.isBlank()) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing id");
+                return;
+            }
+            Long id;
+            try {
+                id = Long.parseLong(idParam);
+            } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid id");
+                return;
+            }
             Trip trip = tripService.getTripById(id);
             request.setAttribute("trip", trip);
             request.setAttribute("entries", tripService.getEntriesByTripId(id));
@@ -65,14 +87,38 @@ public class TripServlet extends HttpServlet {
         trip.setUserId(user.getId());
         trip.setTitle(request.getParameter("title"));
         trip.setDestination(request.getParameter("destination"));
-        trip.setStartDate(LocalDate.parse(request.getParameter("startDate")));
-        trip.setEndDate(LocalDate.parse(request.getParameter("endDate")));
+        String sdParam = request.getParameter("startDate");
+        String edParam = request.getParameter("endDate");
+        if (sdParam != null && !sdParam.isBlank()) {
+            try {
+                trip.setStartDate(LocalDate.parse(sdParam));
+            } catch (DateTimeParseException e) {
+                trip.setStartDate(null);
+            }
+        }
+        if (edParam != null && !edParam.isBlank()) {
+            try {
+                trip.setEndDate(LocalDate.parse(edParam));
+            } catch (DateTimeParseException e) {
+                trip.setEndDate(null);
+            }
+        }
         trip.setDescription(request.getParameter("description"));
 
         if ("add".equals(action)) {
             tripService.createTrip(trip);
         } else if ("update".equals(action)) {
-            trip.setId(Long.parseLong(request.getParameter("id")));
+            String idParam = request.getParameter("id");
+            if (idParam == null || idParam.isBlank()) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing id");
+                return;
+            }
+            try {
+                trip.setId(Long.parseLong(idParam));
+            } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid id");
+                return;
+            }
             tripService.updateTrip(trip);
         }
 

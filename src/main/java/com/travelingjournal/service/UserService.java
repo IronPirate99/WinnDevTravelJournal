@@ -17,6 +17,11 @@ public class UserService {
             return null;
         }
 
+        // Check if email already exists before creating
+        if (emailExists(email)) {
+            return null;
+        }
+
         String passwordHash = BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
         User user = new User(name.trim(), email.toLowerCase().trim(), passwordHash);
 

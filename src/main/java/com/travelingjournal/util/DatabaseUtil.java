@@ -1,14 +1,13 @@
 package com.travelingjournal.util;
 
+import org.bson.Document;
+
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-import org.bson.Document;
-
-import static com.mongodb.client.model.Updates.inc;
 
 public class DatabaseUtil {
     

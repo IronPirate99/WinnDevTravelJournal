@@ -26,8 +26,10 @@ public class TripService {
         if (trip.getTitle() == null || trip.getTitle().trim().isEmpty()) {
             return false;
         }
-        if (trip.getStartDate() == null || trip.getEndDate() == null ||
-            trip.getStartDate().isAfter(trip.getEndDate())) {
+        if (trip.getStartDate() == null || trip.getEndDate() == null) {
+            return false;
+        }
+        if (trip.getStartDate().isAfter(trip.getEndDate())) {
             return false;
         }
 

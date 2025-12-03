@@ -2,13 +2,12 @@ package com.travelingjournal.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.annotation.WebServlet;
+// servlet mapping defined in web.xml
 import jakarta.servlet.http.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-@WebServlet("/upload-photo")
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024 * 2,  // 2MB
     maxFileSize = 1024 * 1024 * 10,       // 10MB
@@ -39,6 +38,18 @@ public class PhotoUploadServlet extends HttpServlet {
         }
 
         String tripId = request.getParameter("tripId");
+
+        // Validate tripId
+        if (tripId == null || tripId.isBlank()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing tripId");
+            return;
+        }
+        try {
+            Long.parseLong(tripId); // Validate it's a number
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid tripId");
+            return;
+        }
 
         response.sendRedirect(request.getContextPath() + "/trip/view?id=" + tripId + "&photo=" + fileName);
     }

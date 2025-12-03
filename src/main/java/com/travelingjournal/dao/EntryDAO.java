@@ -6,9 +6,9 @@ import com.travelingjournal.model.JournalEntry;
 import com.travelingjournal.util.DatabaseUtil;
 import org.bson.Document;
 
-import java.sql.Date;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class EntryDAO {
@@ -21,7 +21,8 @@ public class EntryDAO {
         if (entry.getId() == null) {
             entry.setId(DatabaseUtil.getNextSequence("entries"));
         }
-        Document doc = new Document("id", entry.getId())
+        // Use MongoDB document id (`_id`) to avoid having two different id fields
+        Document doc = new Document("_id", entry.getId())
                 .append("trip_id", entry.getTripId())
                 .append("title", entry.getTitle())
                 .append("content", entry.getContent())
@@ -30,7 +31,9 @@ public class EntryDAO {
                 .append("weather", entry.getWeather());
 
         if (entry.getEntryDate() != null) {
-            doc.append("entry_date", Date.valueOf(entry.getEntryDate()));
+            // Store as standard java.util.Date (BSON Date) to avoid SQL-specific types
+            Date mongoDate = Date.from(entry.getEntryDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            doc.append("entry_date", mongoDate);
         }
         if (!entry.getPhotoPaths().isEmpty()) {
             doc.append("photos", entry.getPhotoPaths());
@@ -49,12 +52,13 @@ public class EntryDAO {
     }
 
     public JournalEntry findById(Long id) {
-        Document doc = getEntryCollection().find(Filters.eq("id", id)).first();
+        // Query against MongoDB _id (we store numeric id as the document _id)
+        Document doc = getEntryCollection().find(Filters.eq("_id", id)).first();
         return doc == null ? null : documentToEntry(doc);
     }
 
     public boolean exists(Long id) {
-        return getEntryCollection().countDocuments(Filters.eq("id", id)) > 0;
+        return getEntryCollection().countDocuments(Filters.eq("_id", id)) > 0;
     }
 
     public boolean update(JournalEntry entry) {
@@ -64,20 +68,24 @@ public class EntryDAO {
                 .append("location", entry.getLocation())
                 .append("mood", entry.getMood())
                 .append("weather", entry.getWeather());
-        if (entry.getEntryDate() != null) update.append("entry_date", Date.valueOf(entry.getEntryDate()));
+        if (entry.getEntryDate() != null) {
+            Date mongoDate = Date.from(entry.getEntryDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            update.append("entry_date", mongoDate);
+        }
         if (!entry.getPhotoPaths().isEmpty()) update.append("photos", entry.getPhotoPaths());
 
-        getEntryCollection().updateOne(Filters.eq("id", entry.getId()), new Document("$set", update));
+        getEntryCollection().updateOne(Filters.eq("_id", entry.getId()), new Document("$set", update));
         return true;
     }
 
     public boolean delete(Long id) {
-        return getEntryCollection().deleteOne(Filters.eq("id", id)).getDeletedCount() > 0;
+        return getEntryCollection().deleteOne(Filters.eq("_id", id)).getDeletedCount() > 0;
     }
 
     private JournalEntry documentToEntry(Document doc) {
         JournalEntry entry = new JournalEntry();
-        Object idObj = doc.get("id");
+        // _id holds the document id (we wrote numeric ids into _id)
+        Object idObj = doc.get("_id");
         if (idObj instanceof Number idNum) entry.setId(idNum.longValue());
         Object tripObj = doc.get("trip_id");
         if (tripObj instanceof Number tripNum) entry.setTripId(tripNum.longValue());

@@ -3,12 +3,11 @@ package com.travelingjournal.servlet;
 import com.travelingjournal.model.User;
 import com.travelingjournal.service.UserService;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+// servlet mapping defined in web.xml
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
 
-@WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
 
     private final UserService userService = new UserService();

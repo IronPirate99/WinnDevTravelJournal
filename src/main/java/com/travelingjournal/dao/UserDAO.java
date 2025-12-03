@@ -6,8 +6,8 @@ import com.travelingjournal.model.User;
 import com.travelingjournal.util.DatabaseUtil;
 import org.bson.Document;
 
-import java.sql.Timestamp;
 import java.time.ZoneId;
+import java.util.Date;
 
 public class UserDAO {
 
@@ -19,13 +19,15 @@ public class UserDAO {
         if (user.getId() == null) {
             user.setId(DatabaseUtil.getNextSequence("users"));
         }
-        Document doc = new Document("id", user.getId())
+        // store numeric id into MongoDB document _id
+        Document doc = new Document("_id", user.getId())
                 .append("name", user.getName())
                 .append("email", user.getEmail())
                 .append("password_hash", user.getPasswordHash());
 
         if (user.getCreatedAt() != null) {
-            doc.append("created_at", Timestamp.from(user.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant()));
+            Date ca = Date.from(user.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant());
+            doc.append("created_at", ca);
         }
 
         getUserCollection().insertOne(doc);
@@ -36,7 +38,7 @@ public class UserDAO {
         Document doc = getUserCollection().find(Filters.eq("email", email)).first();
         if (doc == null) return null;
         User user = new User();
-        Object idObj = doc.get("id");
+        Object idObj = doc.get("_id");
         if (idObj instanceof Number) user.setId(((Number) idObj).longValue());
         user.setName(doc.getString("name"));
         user.setEmail(doc.getString("email"));
@@ -47,7 +49,7 @@ public class UserDAO {
     }
 
     public User findById(Long id) {
-        Document doc = getUserCollection().find(Filters.eq("id", id)).first();
+        Document doc = getUserCollection().find(Filters.eq("_id", id)).first();
         if (doc == null) return null;
         return findByEmail(doc.getString("email"));
     }

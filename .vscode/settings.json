@@ -1,5 +1,19 @@
 {
+  "java.jdt.ls.java.home": "C:\\Program Files\\OpenLogic\\jdk-21.0.6.7-hotspot",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "C:\\Program Files\\OpenLogic\\jdk-21.0.6.7-hotspot"
+    },
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\Program Files\\OpenLogic\\jdk-21.0.6.7-hotspot"
+    }
+  ],
+  "java.import.gradle.java.home": "C:\\Program Files\\OpenLogic\\jdk-21.0.6.7-hotspot",
+  "java.configuration.checkProjectSettingsExclusions": false,
   "java.project.sourcePaths": [
     "src/main/java"
-  ]
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

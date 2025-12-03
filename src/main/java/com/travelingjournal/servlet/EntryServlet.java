@@ -4,13 +4,13 @@ import com.travelingjournal.model.JournalEntry;
 import com.travelingjournal.model.User;
 import com.travelingjournal.service.EntryService;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
+// servlet mapping defined in web.xml
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
-@WebServlet("/entry/*")
 public class EntryServlet extends HttpServlet {
 
     private final EntryService entryService = new EntryService();
@@ -39,8 +39,29 @@ public class EntryServlet extends HttpServlet {
         User user = (User) request.getSession().getAttribute("user");
 
         JournalEntry entry = new JournalEntry();
-        entry.setTripId(Long.parseLong(request.getParameter("tripId")));
-        entry.setEntryDate(LocalDate.parse(request.getParameter("entryDate")));
+        String tripIdParam = request.getParameter("tripId");
+        if (tripIdParam == null || tripIdParam.isBlank()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing tripId");
+            return;
+        }
+        try {
+            entry.setTripId(Long.parseLong(tripIdParam));
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid tripId");
+            return;
+        }
+
+        String entryDateParam = request.getParameter("entryDate");
+        if (entryDateParam != null && !entryDateParam.isBlank()) {
+            try {
+                entry.setEntryDate(LocalDate.parse(entryDateParam));
+            } catch (DateTimeParseException e) {
+                // If date can't be parsed, set to null and allow service to default it
+                entry.setEntryDate(null);
+            }
+        } else {
+            entry.setEntryDate(null);
+        }
         entry.setTitle(request.getParameter("title"));
         entry.setContent(request.getParameter("content"));
         entry.setMood(request.getParameter("mood"));
